@@ -56,7 +56,10 @@ const StatsSection = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
-          <div className="p-8 rounded-3xl bg-secondary/5 border border transition-colors group shadow-sm">
+          <div
+            key={index}
+            className="p-8 rounded-3xl bg-secondary/5 border border transition-colors group shadow-sm"
+          >
             <div className="mb-4  w-10 h-10 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform text-primary">
               {stat.icon}
             </div>
@@ -136,7 +139,7 @@ const TimelineSection = () => {
                   <Image
                     width={500}
                     height={500}
-                    src={'/why/why2.jpg'}
+                    src={"/why/why2.jpg"}
                     alt="Milestone"
                     className="w-full h-64 object-cover"
                   />
