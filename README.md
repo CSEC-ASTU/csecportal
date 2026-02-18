@@ -227,13 +227,3 @@ If login fails for an account you created:
 
 ---
 
-## License
-
-Add your license here (e.g., MIT) or set the license used by the project.
-
----
-
-If you want, I can:
-- Add this README to the repository (create `/README.md`) now.
-- Generate a `.env.example` file with the vars shown above.
-- Create a short `api/README.md` and `client/README.md` with more detailed run
