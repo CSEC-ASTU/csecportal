@@ -5,12 +5,12 @@ import React, { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const whyCsecAstu = [
-  { _id: "3", title: "Develop Your Skills", why: "Access resources and mentorship to develop your coding, AI, and data science skills for the future.", why_image: "/why/why3.jpg" },
-  { _id: "4", title: "Build Community", why: "Be part of a vibrant community that fosters creativity, innovation, leadership, and teamwork.", why_image: "/why/why4.jpg" },
-  { _id: "5", title: "Network & Connect", why: "Build a professional portfolio while connecting with startups and tech companies across Ethiopia.", why_image: "/why/why5.jpg" },
-  { _id: "6", title: "Real-World Impact", why: "Participate in research-driven initiatives that address real-world technological challenges.", why_image: "/why/why6.jpg" },
-  { _id: "7", title: "Career Guidance", why: "Benefit from structured mentorship programs to guide your career path in software engineering.", why_image: "/why/why7.jpg" },
-  { _id: "8", title: "Become a Leader", why: "Join a community that values growth and discipline to help you become a future tech leader.", why_image: "/why/why8.jpg" },
+  { id: "3", title: "Develop Your Skills", why: "Access resources and mentorship to develop your coding, AI, and data science skills for the future.", why_image: "/why/why3.jpg" },
+  { id: "4", title: "Build Community", why: "Be part of a vibrant community that fosters creativity, innovation, leadership, and teamwork.", why_image: "/why/why4.jpg" },
+  { id: "5", title: "Network & Connect", why: "Build a professional portfolio while connecting with startups and tech companies across Ethiopia.", why_image: "/why/why5.jpg" },
+  { id: "6", title: "Real-World Impact", why: "Participate in research-driven initiatives that address real-world technological challenges.", why_image: "/why/why6.jpg" },
+  { id: "7", title: "Career Guidance", why: "Benefit from structured mentorship programs to guide your career path in software engineering.", why_image: "/why/why7.jpg" },
+  { id: "8", title: "Become a Leader", why: "Join a community that values growth and discipline to help you become a future tech leader.", why_image: "/why/why8.jpg" },
 ];
 
 export default function WhyCsecHorizontal() {
@@ -61,7 +61,7 @@ export default function WhyCsecHorizontal() {
         >
           {whyCsecAstu.map((item) => (
             <div
-              key={item._id}
+              key={item.id}
               className="min-w-[85vw] md:min-w-[450px] snap-center group"
             >
               <div className="relative h-[500px] w-full rounded-[2.5rem] overflow-hidden border border-border bg-secondary/20">

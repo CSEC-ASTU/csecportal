@@ -1,7 +1,7 @@
 /*   */
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
@@ -9,8 +9,19 @@ import { z } from "zod";
 import { optionalInformationSchema } from "@/lib/validations/user-profile.validation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import FormInput from "./FormInput";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/features/store";
+import { useGetMemberByIdQuery, useUpdateOwnProfileMutation } from "@/lib/features/api";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
-export default function EditOptionalInformation() {
+export default function EditOptionalInformation({ onNext }: { onNext?: () => void }) {
+  const router = useRouter();
+  const memberId = useSelector((state: RootState) => state?.auth?.user?.id);
+  const { data: memberData } = useGetMemberByIdQuery(memberId);
+  const member = (memberData as any)?.data;
+  const [updateProfile, { isLoading }] = useUpdateOwnProfileMutation();
+
   const form = useForm<z.infer<typeof optionalInformationSchema>>({
     resolver: zodResolver(optionalInformationSchema),
     defaultValues: {
@@ -26,9 +37,33 @@ export default function EditOptionalInformation() {
     },
   });
 
-  const onSubmit = async function (data: any) {
-    console.log("Submitted Optional Info:", data);
-    // You can also handle API call or state update here
+  // Pre-fill form with existing profile data
+  useEffect(() => {
+    if (!member) return;
+    form.reset({
+      instagram_handle: "",
+      bio: member.bio || "",
+      birthdate: "",
+      codeforce_handle: member.supportHandle || "",
+      cv: "",
+      joining_date: "",
+      leetcode: "",
+      linkedin_account: "",
+      university_id: member.studentId || "",
+    });
+  }, [member]);
+
+  const onSubmit = async (data: z.infer<typeof optionalInformationSchema>) => {
+    try {
+      const payload: Record<string, any> = {};
+      if (data.bio) payload.bio = data.bio;
+      if (data.linkedin_account) payload.linkedin = data.linkedin_account;
+      await updateProfile(payload).unwrap();
+      toast.success("Optional info updated successfully");
+      onNext?.();
+    } catch {
+      toast.error("Failed to update profile");
+    }
   };
 
   return (
@@ -49,14 +84,14 @@ export default function EditOptionalInformation() {
             form={form}
             is_full={false}
             name="linkedin_account"
-            placeholder="LinkedIn account"
+            placeholder={member?.linkedin || "LinkedIn account"}
             type="text"
           />
           <FormInput
             form={form}
             is_full={false}
             name="codeforce_handle"
-            placeholder="Codeforces handle"
+            placeholder={member?.supportHandle || "Codeforces handle"}
             type="text"
           />
           <FormInput
@@ -70,7 +105,7 @@ export default function EditOptionalInformation() {
             form={form}
             is_full={false}
             name="university_id"
-            placeholder="University ID"
+            placeholder={member?.studentId || "University ID"}
             type="text"
           />
           <FormInput
@@ -98,15 +133,15 @@ export default function EditOptionalInformation() {
             form={form}
             is_full={true}
             name="bio"
-            placeholder="Your bio"
+            placeholder={member?.bio || "Your bio"}
             type="textarea"
           />
         </div>
         <div className="flex items-center gap-3 mt-4">
-          <Button variant="outline" type="button" onClick={() => form.reset()}>
+          <Button variant="outline" type="button" onClick={() => router.back()}>
             Cancel
           </Button>
-          <Button type="submit">Next</Button>
+          <Button type="submit" disabled={isLoading}>{isLoading ? "Saving..." : "Next"}</Button>
         </div>
       </form>
     </Form>

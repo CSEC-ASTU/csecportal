@@ -313,11 +313,12 @@ export const apiSlice = createApi({
 
     // Update own profile with image
     updateOwnProfile: builder.mutation({
-      query: (formData: FormData) => ({
-        url: "/profile",
+      query: (body: FormData | Record<string, any>) => ({
+        url: "/members/profile",
         method: "PATCH",
-        body: formData,
+        body,
       }),
+      invalidatesTags: ["Members"],
     }),
 
     // Update profile picture (with auth)

@@ -100,13 +100,13 @@ export default function AssignUpdatePopup({
             ) : (
               filteredUsers.map((user) => (
                 <div
-                  key={user._id}
+                  key={user.id}
                   className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer ${
-                    selectedUser === user._id
+                    selectedUser === user.id
                       ? "bg-primary/10 border border-primary/20"
                       : "hover:bg-muted/50"
                   }`}
-                  onClick={() => setSelectedUser(user._id)}
+                  onClick={() => setSelectedUser(user.id)}
                 >
                   <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary/10 text-primary">
                     <User className="h-4 w-4" />

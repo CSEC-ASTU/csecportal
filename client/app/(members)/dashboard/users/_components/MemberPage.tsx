@@ -86,8 +86,8 @@ export default function MemberPage({ members, membersLoading, total }: IMembers)
                 ) : (
                   members?.map((member) => (
                     <MemberList
-                      key={member._id}
-                      id={member._id}
+                      key={member.id}
+                      id={member.id}
                       memberId={member.studentId || member.email}
                       name={member.freeName}
                       role={member.role}

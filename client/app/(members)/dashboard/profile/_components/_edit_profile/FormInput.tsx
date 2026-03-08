@@ -88,12 +88,9 @@ export default function FormInput(data: IFormInput) {
         <FormItem className={`${data.is_full ? "w-full" : "w-[49%]"}`}>
           <FormControl className="w-full">
             <Input
-              type="text"
+              type={data.type}
               className="w-full py-6"
-              placeholder={data.name
-                .split("_")
-                .map((el) => el.charAt(0).toUpperCase() + el.slice(1))
-                .join(" ")}
+              placeholder={data.placeholder}
               {...field}
             />
           </FormControl>

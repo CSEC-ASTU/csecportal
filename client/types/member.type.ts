@@ -1,7 +1,7 @@
 import { Credentials } from "./credentials.tye";
 import { IDivision } from "./divisions.types";
 export interface IMemberData {
-  _id: string;
+  id: string;
   freeName: string;
   email: string;
   studentId: string;

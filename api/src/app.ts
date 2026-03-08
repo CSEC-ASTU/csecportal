@@ -11,6 +11,7 @@ import divisionHeadRoutes from "./routes/division-head.routes";
 import groupMemberRoutes from "./routes/group-member.routes";
 import articleRoutes from "./routes/article.routes";
 import simpleArticleRoutes from "./routes/simple-article.routes";
+import driveRoutes from "./routes/drive.routes";
 
 const app = express();
 
@@ -32,5 +33,6 @@ app.use("/api/articles", articleRoutes);
 app.use("/api/simple-articles", simpleArticleRoutes);
 app.use("/api/division-heads", divisionHeadRoutes);
 app.use("/api/group-members", groupMemberRoutes);
+app.use("/api/drive", driveRoutes);
 
 export default app;

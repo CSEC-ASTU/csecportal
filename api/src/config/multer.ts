@@ -20,24 +20,13 @@ const storage = multer.diskStorage({
   }
 });
 
-// File filter for uploads
-const fileFilter = (_req: any, file: any, cb: multer.FileFilterCallback) => {
-  // Accept image files only
-  const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-  if (allowedMimeTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only image files are allowed'));
-  }
-};
-
-// Configure multer with more debugging
+// Configure multer to accept all file types by default.
+// If you want to restrict to specific MIME types, update this filter.
 const upload = multer({ 
   storage: storage,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB max file size
-  },
-  fileFilter: fileFilter
+    fileSize: 50 * 1024 * 1024, // 50MB max file size
+  }
 });
 
 

@@ -100,7 +100,7 @@ function ProfileUpper({ name, role, seen, completion }: { name: string; role: st
   );
 }
 
-function Button({ variant, size, className, children, ...props }: any) {
+function Button({ variant, size, className, children, asChild: _asChild, ...props }: any) {
   const base = "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border";
   const variants: any = {
     outline: "border-input bg-background hover:bg-accent hover:text-accent-foreground",

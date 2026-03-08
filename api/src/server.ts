@@ -29,6 +29,7 @@ import eventRouter from "./routes/event.route";
 import attendanceRouter from "./routes/attendance.route";
 import resourcesRouter from "./routes/resources.route";
 import articleRouter from "./routes/article.routes";
+import driveRoutes from "./routes/drive.routes";
 
 // Load environment variables FIRST
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
@@ -114,6 +115,7 @@ app.use(`${API_PREFIX}/division-heads`, divisionHeadRoutes);
 app.use(`${API_PREFIX}/division-members`, divisionMembersRoutes);
 app.use(`${API_PREFIX}/president-members`, presidentMembersRoutes);
 app.use(`${API_PREFIX}/articles`, articleRouter);
+app.use(`${API_PREFIX}/drive`, driveRoutes);
 app.use(`${API_PREFIX}/testimonials`, testimonialRouter);
 app.use(`${API_PREFIX}/faqs`, faqRouter);
 app.use(`${API_PREFIX}/rules`, rulesRouter);

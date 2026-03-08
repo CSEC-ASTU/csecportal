@@ -34,6 +34,18 @@ router.post("/invite", memberController.inviteMember);
 // Generate a random password - accessible by anyone
 router.get("/generate-password", memberController.generatePassword);
 
+// Update own profile - accessible by any authenticated user
+// Must be declared BEFORE /:memberId to avoid route capture
+router.patch(
+  "/profile",
+  authenticateToken,
+  upload.single("profileImage"),
+  memberController.updateOwnProfile
+);
+
+// Assign division head - accessible by president only
+router.post("/assign-head", memberController.assignDivisionHead);
+
 // Get member by ID - accessible by president, division heads, and the member themselves
 router.get("/:memberId", memberController.getMemberById);
 
@@ -42,18 +54,6 @@ router.patch("/:memberId", memberController.updateMember);
 
 // Delete member - accessible by president and division heads (their division only)
 router.delete("/:memberId", memberController.deleteMember);
-
-// Assign division head - accessible by president only
-router.post("/assign-head", memberController.assignDivisionHead);
-
-// Update own profile - accessible by any authenticated user
-// Add multer middleware to handle file uploads
-router.patch(
-  "/profile",
-  authenticateToken,
-  upload.single("profileImage"),
-  memberController.updateOwnProfile
-);
 
 // Update profile picture - accessible by the member themselves or president
 router.post(

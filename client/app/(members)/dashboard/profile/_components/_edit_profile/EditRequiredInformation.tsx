@@ -1,7 +1,7 @@
 /*   */
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
@@ -9,30 +9,76 @@ import { z } from "zod";
 import { requiredInformationSchema } from "@/lib/validations/user-profile.validation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import FormInput from "./FormInput";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/features/store";
+import { useGetMemberByIdQuery, useUpdateOwnProfileMutation } from "@/lib/features/api";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
-const initialRequiredData = {
-  image: "",
-  first_name: "",
-  last_name: "",
-  mobile_number: "",
-  email_address: "",
-  date_of_birth: "",
-  github: "",
-  gender: "",
-  telegram_handle: "",
-  graduation_year: new Date().getFullYear(),
-  specialization: [],
-  department: "",
-  mentor: "",
-};
+export default function EditRequiredInformation({ onNext }: { onNext?: () => void }) {
+  const router = useRouter();
+  const memberId = useSelector((state: RootState) => state?.auth?.user?.id);
+  const { data: memberData } = useGetMemberByIdQuery(memberId);
+  const member = (memberData as any)?.data;
+  const [updateProfile, { isLoading }] = useUpdateOwnProfileMutation();
 
-export default function EditRequiredInformation() {
   const form = useForm<z.infer<typeof requiredInformationSchema>>({
     resolver: zodResolver(requiredInformationSchema),
-    defaultValues: initialRequiredData,
+    defaultValues: {
+      image: "",
+      first_name: "",
+      last_name: "",
+      mobile_number: "",
+      email_address: "",
+      date_of_birth: "",
+      github: "",
+      gender: "",
+      telegram_handle: "",
+      graduation_year: new Date().getFullYear(),
+      specialization: [],
+      department: "",
+      mentor: "",
+    },
   });
-  const onSubmit = async function (data: any) {
-    console.log(data);
+
+  // Pre-fill form with existing profile data
+  useEffect(() => {
+    if (!member) return;
+    const nameParts = (member.freeName || "").split(" ");
+    form.reset({
+      image: member.profileImage || "",
+      first_name: nameParts[0] || "",
+      last_name: nameParts.slice(1).join(" ") || "",
+      mobile_number: member.contact || "",
+      email_address: member.email || "",
+      date_of_birth: "",
+      github: member.githubProfile || "",
+      gender: "",
+      telegram_handle: member.note || "",
+      graduation_year: member.expectedGenerationYear
+        ? Number(member.expectedGenerationYear)
+        : new Date().getFullYear(),
+      specialization: member.skills || [],
+      department: member.fieldOfStudy || "",
+      mentor: "",
+    });
+  }, [member]);
+
+  const onSubmit = async (data: z.infer<typeof requiredInformationSchema>) => {
+    try {
+      const payload: Record<string, any> = {
+        freeName: `${data.first_name} ${data.last_name}`.trim(),
+        phoneNumber: data.mobile_number,
+        github: data.github,
+        telegram: data.telegram_handle,
+      };
+      if (data.image) payload.profileImage = data.image;
+      await updateProfile(payload).unwrap();
+      toast.success("Profile updated successfully");
+      onNext?.();
+    } catch {
+      toast.error("Failed to update profile");
+    }
   };
 
   return (
@@ -54,7 +100,7 @@ export default function EditRequiredInformation() {
             form={form}
             is_full={false}
             name={"first_name"}
-            placeholder={"Enter your first name"}
+            placeholder={member?.freeName?.split(" ")[0] || "Enter your first name"}
             type="text"
           />
 
@@ -62,7 +108,7 @@ export default function EditRequiredInformation() {
             form={form}
             is_full={false}
             name={"last_name"}
-            placeholder={"Enter your last name"}
+            placeholder={member?.freeName?.split(" ").slice(1).join(" ") || "Enter your last name"}
             type="text"
           />
 
@@ -70,7 +116,7 @@ export default function EditRequiredInformation() {
             form={form}
             is_full={false}
             name={"mobile_number"}
-            placeholder={"Enter your mobile number"}
+            placeholder={member?.contact || "Enter your mobile number"}
             type="tel"
           />
 
@@ -78,7 +124,7 @@ export default function EditRequiredInformation() {
             form={form}
             is_full={false}
             name={"email_address"}
-            placeholder={"Enter your email address"}
+            placeholder={member?.email || "Enter your email address"}
             type="email"
           />
 
@@ -94,7 +140,7 @@ export default function EditRequiredInformation() {
             form={form}
             is_full={false}
             name={"github"}
-            placeholder={"Enter your GitHub username"}
+            placeholder={member?.githubProfile || "Enter your GitHub username"}
             type="text"
           />
 
@@ -102,7 +148,7 @@ export default function EditRequiredInformation() {
             form={form}
             is_full={false}
             name={"telegram_handle"}
-            placeholder={"Enter your Telegram handle"}
+            placeholder={member?.note || "Enter your Telegram handle"}
             type="text"
           />
 
@@ -110,13 +156,13 @@ export default function EditRequiredInformation() {
             form={form}
             is_full={false}
             name={"graduation_year"}
-            placeholder={"Enter your graduation year"}
+            placeholder={member?.expectedGenerationYear?.toString() || "Enter your graduation year"}
             type="number"
           />
         </div>
         <div className="flex items-center gap-3">
-          <Button variant={"outline"}>Cancel</Button>
-          <Button type="submit">Next</Button>
+          <Button variant={"outline"} type="button" onClick={() => router.back()}>Cancel</Button>
+          <Button type="submit" disabled={isLoading}>{isLoading ? "Saving..." : "Next"}</Button>
         </div>
       </form>
     </Form>

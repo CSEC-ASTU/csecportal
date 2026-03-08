@@ -1023,24 +1023,44 @@ const updateOwnProfile = async (req: Request, res: Response) => {
 
     const updateData = req.body;
 
-    // Define allowed fields that a user can update about themselves
+    // Map client-side field names to actual Prisma schema field names
+    const fieldAliases: Record<string, string> = {
+      phoneNumber:  "contact",
+      github:       "githubProfile",
+      telegram:     "note",
+      bio:          "historyNotes",
+      linkedin:     "alternateEmail",
+      codeforces:   "supportHandle",
+    };
+
+    // Resolve aliases first
+    const resolvedData: Record<string, any> = {};
+    Object.keys(updateData).forEach((key) => {
+      const schemaKey = fieldAliases[key] ?? key;
+      resolvedData[schemaKey] = updateData[key];
+    });
+
+    // Allowed Prisma schema fields a user may update on their own profile
     const allowedFields = [
       "freeName",
       "fullName",
       "profileImage",
-      "bio",
-      "phoneNumber",
-      "telegram",
-      "linkedin",
-      "github",
+      "contact",
+      "githubProfile",
+      "note",
+      "historyNotes",
+      "alternateEmail",
+      "supportHandle",
+      "studentId",
+      "expectedGenerationYear",
+      "fieldOfStudy",
     ];
 
-    // Filter the update data to only include allowed fields
-    // Use Record<string, any> to tell TypeScript this is an object with string keys and any values
+    // Filter to only schema-valid, allowed fields
     let filteredUpdateData: Record<string, any> = {};
-    Object.keys(updateData).forEach((key) => {
-      if (allowedFields.includes(key)) {
-        filteredUpdateData[key] = updateData[key];
+    Object.keys(resolvedData).forEach((key) => {
+      if (allowedFields.includes(key) && resolvedData[key] !== undefined && resolvedData[key] !== "") {
+        filteredUpdateData[key] = resolvedData[key];
       }
     });
 

@@ -4,6 +4,7 @@ import { prisma } from '../config/db';
 import { errorResponse } from './response';
 import { RoleType } from '../types/role.types';
 import { User } from '../types/user.types';
+import { JWT_CONFIG } from '../config/jwt.config';
 
 /**
  * Interface for JWT payload
@@ -35,7 +36,7 @@ export const verifyToken = async (token: string): Promise<(Pick<User, 'id' | 'em
     // Verify the token
     const decoded = jwt.verify(
       token, 
-      process.env.JWT_SECRET || 'fallback_secret'
+      JWT_CONFIG.secret
     ) as JwtPayload;
     
     console.log('Decoded token:', decoded);

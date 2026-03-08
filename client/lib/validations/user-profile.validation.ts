@@ -1,33 +1,31 @@
 import { z } from "zod";
 
 export const requiredInformationSchema = z.object({
-  image: z.string().url({ message: "Image must be a valid URL" }),
-  first_name: z.string().min(1, "First name is required"),
-  last_name: z.string().min(1, "Last name is required"),
-  mobile_number: z.string().min(1, "Mobile number is required"),
-  email_address: z.string().email("Invalid email address"),
-  date_of_birth: z.string().min(1, "Date of birth is required"),
-  github: z.string().url("Invalid GitHub URL"),
-  gender: z.string().min(1, "Gender is required"),
-  telegram_handle: z.string().min(1, "Telegram handle is required"),
-  graduation_year: z.number().int("Graduation year must be an integer"),
-  specialization: z
-    .array(z.string())
-    .nonempty("At least one specialization is required"),
-  department: z.string().min(1, "Department is required"),
-  mentor: z.string().min(1, "Mentor is required"),
+  image: z.string().optional(),
+  first_name: z.string().optional(),
+  last_name: z.string().optional(),
+  mobile_number: z.string().optional(),
+  email_address: z.string().optional(),
+  date_of_birth: z.string().optional(),
+  github: z.string().optional(),
+  gender: z.string().optional(),
+  telegram_handle: z.string().optional(),
+  graduation_year: z.number().int().optional(),
+  specialization: z.array(z.string()).optional(),
+  department: z.string().optional(),
+  mentor: z.string().optional(),
 });
 
 export const optionalInformationSchema = z.object({
-  university_id: z.string().nullable(),
-  instagram_handle: z.string().nullable(),
-  linkedin_account: z.string().nullable(),
-  birthdate: z.string().nullable(),
-  codeforce_handle: z.string().nullable(),
-  cv: z.string().nullable(),
-  leetcode: z.string().nullable(),
-  joining_date: z.string().nullable(),
-  bio: z.string().nullable(),
+  university_id: z.string().optional().nullable(),
+  instagram_handle: z.string().optional().nullable(),
+  linkedin_account: z.string().optional().nullable(),
+  birthdate: z.string().optional().nullable(),
+  codeforce_handle: z.string().optional().nullable(),
+  cv: z.string().optional().nullable(),
+  leetcode: z.string().optional().nullable(),
+  joining_date: z.string().optional().nullable(),
+  bio: z.string().optional().nullable(),
 });
 
 export const resourceDataSchema = z.object({

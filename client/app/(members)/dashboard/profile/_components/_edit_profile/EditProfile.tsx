@@ -36,8 +36,8 @@ export default function EditProfile() {
 
       {/* Content Section */}
       <div className="pt-2">
-        {active === "req-info" && <EditRequiredInformation />}
-        {active === "opt-info" && <EditOptionalInformations />}
+        {active === "req-info" && <EditRequiredInformation onNext={() => setActive("opt-info")} />}
+        {active === "opt-info" && <EditOptionalInformations onNext={() => setActive("rs")} />}
         {active === "rs" && <EditProfileResourses />}
       </div>
     </div>
