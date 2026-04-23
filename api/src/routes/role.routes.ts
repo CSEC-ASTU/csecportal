@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { getRolePermissionsController, getAllRoles } from "../controllers/role.controller";
-import { PrismaClient, RoleType } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
+import { RoleType } from "../types/role.types";
 import jwt from "jsonwebtoken";
 
 const router = Router();

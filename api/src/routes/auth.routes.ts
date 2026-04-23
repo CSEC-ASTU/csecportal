@@ -13,7 +13,7 @@ import {
   checkUserVerification,
 } from "../controllers/auth.controller";
 import { authenticateToken, authorize } from "../middlewares/auth.middleware";
-import { RoleType } from "@prisma/client";
+import { RoleType } from "../types/role.types";
 import { prisma } from "../config/db";
 
 const router = Router();
@@ -63,6 +63,57 @@ router.get("/test", (req, res) => {
 // Public routes
 router.post("/register", register);
 router.post("/login", login);
+
+// Debug route: direct credential check (bypasses passport) — remove after debugging
+router.post("/debug-login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ success: false, error: "Email and password required" });
+    }
+    console.log(`Debug login attempt for ${email}`);
+    const user = await prisma.user.findUnique({ where: { email }, select: { id: true, email: true, password: true, role: true, freeName: true } });
+    if (!user) return res.status(404).json({ success: false, error: "User not found" });
+    const match = await (await import('bcryptjs')).compare(password, user.password);
+    return res.json({ success: true, matched: match, user: { id: user.id, email: user.email, role: user.role, freeName: user.freeName } });
+  } catch (err) {
+    console.error('Debug login error:', err);
+    return res.status(500).json({ success: false, error: 'Debug login failed' });
+  }
+});
+
+// GET debug route for quick browser testing: /api/auth/debug-login?email=...&password=...
+router.get("/debug-login", async (req, res) => {
+  try {
+    const email = req.query.email as string | undefined;
+    const password = req.query.password as string | undefined;
+
+    if (!email || !password) {
+      return res.json({
+        success: true,
+        message:
+          "Provide email and password as query params: ?email=you@x.com&password=yourpw",
+      });
+    }
+
+    console.log(`Debug GET login attempt for ${email}`);
+
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, email: true, password: true, role: true, freeName: true },
+    });
+
+    if (!user) return res.status(404).json({ success: false, error: "User not found" });
+
+    const bcrypt = await import("bcryptjs");
+    const match = await bcrypt.compare(password, user.password);
+
+    return res.json({ success: true, matched: match, user: { id: user.id, email: user.email, role: user.role, freeName: user.freeName } });
+  } catch (err) {
+    console.error("Debug GET login error:", err);
+    return res.status(500).json({ success: false, error: "Debug login failed" });
+  }
+});
 
 // Password reset routes
 router.post("/forgot-password", forgotPassword);

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
@@ -32,6 +32,11 @@ export const Header = () => {
   const router = useRouter();
   const [backendLogout] = useLogoutMutation();
   const user = useSelector((state: RootState) => state?.auth?.user);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleLogout = async () => {
     dispatch(logout());
@@ -54,8 +59,8 @@ export const Header = () => {
           <div className="h-6 w-[1px] bg-border mx-1 hidden md:block" />
 
           <HeaderProfile
-            name={user?.freeName || "User"}
-            role={user?.role || "Member"}
+            name={mounted ? user?.freeName || "User" : "User"}
+            role={mounted ? user?.role || "Member" : "Member"}
             onLogout={handleLogout}
           />
         </div>

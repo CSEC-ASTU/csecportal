@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { prisma } from "../config/db";
 import { successResponse, errorResponse } from "../utils/response";
-import { RoleType } from "@prisma/client";
+import { RoleType } from "../types/role.types";
 import { RequestWithUser } from "../types/request.types";
 
 // Extended types for the UsersInGroups model with soft delete fields

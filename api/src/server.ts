@@ -45,12 +45,46 @@ const allowedOrigins = [
   "http://localhost:5500",
 ];
 
+const envAllowedOrigins = (process.env.CORS_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const isPrivateNetworkHost = (hostname: string) => {
+  return (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "::1" ||
+    /^10\./.test(hostname) ||
+    /^192\.168\./.test(hostname) ||
+    /^172\.(1[6-9]|2\d|3[0-1])\./.test(hostname)
+  );
+};
+
+const isAllowedOrigin = (origin: string) => {
+  if (allowedOrigins.includes(origin) || envAllowedOrigins.includes(origin)) {
+    return true;
+  }
+
+  try {
+    const { hostname } = new URL(origin);
+
+    if (process.env.NODE_ENV !== "production" && isPrivateNetworkHost(hostname)) {
+      return true;
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+};
+
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps/curl)
     if (!origin) return callback(null, true);
 
-    if (allowedOrigins.includes(origin) || origin.includes("localhost") || origin.includes("127.0.0.1")) {
+    if (isAllowedOrigin(origin)) {
       return callback(null, true);
     }
 

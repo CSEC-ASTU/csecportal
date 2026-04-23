@@ -1436,7 +1436,7 @@ const inviteMember = async (req: Request, res: Response) => {
           gmailId: gmailId || null,
           githubProfile: githubProfile || null,
           supportHandle: supportHandle || null,
-          skills: skills || [],
+          skillsJson: skills && Array.isArray(skills) ? JSON.stringify(skills) : null,
           fieldOfStudy: fieldOfStudy || null,
           historyNotes: historyNotes || null,
           expectedGenerationYear: year || null,
@@ -1464,7 +1464,7 @@ const inviteMember = async (req: Request, res: Response) => {
           gmailId: gmailId || null,
           githubProfile: githubProfile || null,
           supportHandle: supportHandle || null,
-          skills: skills || [],
+          skillsJson: skills && Array.isArray(skills) ? JSON.stringify(skills) : null,
           fieldOfStudy: fieldOfStudy || null,
           historyNotes: historyNotes || null,
           expectedGenerationYear: year || null,
@@ -1811,6 +1811,16 @@ const mapFreeNameToFullName = (user: any) => {
   // Add fullName property if freeName exists
   if (mappedUser.freeName) {
     mappedUser.fullName = mappedUser.freeName;
+  }
+
+  // If skillsJson exists (SQLite-compatible schema), parse it into skills array
+  if (mappedUser.skillsJson) {
+    try {
+      mappedUser.skills = JSON.parse(mappedUser.skillsJson);
+    } catch (e) {
+      mappedUser.skills = [];
+    }
+    delete mappedUser.skillsJson;
   }
 
   return mappedUser;

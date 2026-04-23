@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../config/db";
 import { successResponse, errorResponse } from "../utils/response";
-import { RoleType } from "@prisma/client";
+import { RoleType } from "../types/role.types";
 import { RequestWithUser } from "../types/request.types";
 
 // Check if user is a division head

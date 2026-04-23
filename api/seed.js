@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 
@@ -39,7 +41,6 @@ async function main() {
         { name: 'Data Science & AI', description: 'Machine learning, AI research, and data analytics.' },
         { name: 'Capacity Building & Design', description: 'UI/UX design and professional development.' },
     ];
-
     const divisions = {};
     for (const div of divisionsData) {
         divisions[div.name] = await prisma.division.create({ data: div });

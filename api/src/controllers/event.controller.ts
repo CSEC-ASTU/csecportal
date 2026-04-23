@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { prisma } from "../config/db";
-import { EventType } from "@prisma/client";
+import { EventType } from "../types/event.types";
 import { authenticateRequest, isPresident } from "../utils/auth.utils";
 
 export const getAllEvents = async (

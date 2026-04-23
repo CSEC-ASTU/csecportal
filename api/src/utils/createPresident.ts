@@ -1,4 +1,5 @@
-import { PrismaClient, RoleType } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+import { RoleType } from '../types/role.types';
 import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 

@@ -28,9 +28,7 @@ passport.use(
 
         // Dev debug: log lookup result (avoid logging sensitive fields in production)
         if (process.env.NODE_ENV !== "production") {
-          console.log(
-            `passport: lookup for email=${email} -> ${user ? "FOUND" : "NOT_FOUND"}`,
-          );
+          console.log(`passport: user lookup result for email=${email} ->`, user);
         }
 
         // If user not found

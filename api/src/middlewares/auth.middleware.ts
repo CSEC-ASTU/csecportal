@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { RoleType } from "@prisma/client";
+import { RoleType } from "../types/role.types";
 import { JWT_CONFIG } from "../config/jwt.config";
 import { prisma } from "../config/db";
 

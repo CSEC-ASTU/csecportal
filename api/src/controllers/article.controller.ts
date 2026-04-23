@@ -4,12 +4,12 @@ import { authenticateRequest } from "../utils/auth.utils";
 import { errorResponse, successResponse } from "../utils/response";
 import { uploadToCloudinary } from "../config/cloudinary";
 import { MongoClient, ObjectId } from "mongodb";
-import { RoleType } from "@prisma/client";
+import { RoleType } from "../types/role.types";
 import fs from "fs";
 import path from "path";
 
 // Helper function to check if a user is a division head based on role
-const isDivisionHeadRole = (role: RoleType): boolean => {
+const isDivisionHeadRole = (role: string | RoleType): boolean => {
   return (
     role === RoleType.CBD_HEAD ||
     role === RoleType.CYBER_HEAD ||
