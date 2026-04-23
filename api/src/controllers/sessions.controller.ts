@@ -106,12 +106,12 @@ export const createSession = async (
     const createdSession = await prisma.session.findUnique({
       where: { id: session.id },
       include: {
-        userMemberships: {
+        memberships: {
           include: {
             user: true,
           },
         },
-        attendance: true,
+        attendances: true,
         division: true,
       },
     });
@@ -170,7 +170,7 @@ export const getAllSessions = async (
         },
         include: {
           division: true,
-          userMemberships: {
+          memberships: {
             include: {
               user: true,
             },
@@ -209,7 +209,7 @@ export const getSessionById = async (
       where: { id },
       include: {
         division: true,
-        userMemberships: {
+        memberships: {
           include: {
             user: true,
           },
@@ -258,7 +258,7 @@ export const updateSession = async (
       },
       include: {
         division: true,
-        userMemberships: {
+        memberships: {
           include: {
             user: true,
           },
@@ -319,7 +319,7 @@ export const getSessionsByDivisionId = async (
       },
       include: {
         division: true,
-        userMemberships: {
+        memberships: {
           include: {
             user: true,
           },

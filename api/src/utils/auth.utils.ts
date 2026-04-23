@@ -87,7 +87,7 @@ export const verifyToken = async (token: string): Promise<(Pick<User, 'id' | 'em
         }
         
         console.log('User found in database:', user);
-        return user;
+        return user as Pick<User, 'id' | 'email' | 'role' | 'freeName' | 'divisionId'> & { fullName?: string };
       }
     } catch (dbError) {
       console.error('Database error when finding user:', dbError);

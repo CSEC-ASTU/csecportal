@@ -1,5 +1,6 @@
 import express from "express";
-import { PrismaClient, RoleType } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
+import { RoleType } from "../types/role.types";
 import { sendDivisionHeadEmail } from "../services/email.service";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";

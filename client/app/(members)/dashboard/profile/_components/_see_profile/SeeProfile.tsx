@@ -14,8 +14,8 @@ import { Badge } from "@/components/ui/badge";
 
 export default function SeeProfile() {
   const [activeTab, setActiveTab] = useState("personal");
-  const memberId = useSelector((state: RootState) => state?.auth?.user.id);
-  const { data: members, isLoading: memberLoading } = useGetMemberByIdQuery(memberId);
+  const memberId = useSelector((state: RootState) => state?.auth?.user?.id);
+  const { data: members, isLoading: memberLoading } = useGetMemberByIdQuery(memberId ?? "", { skip: !memberId });
   const member = (members as any)?.data;
 
   if (memberLoading) {

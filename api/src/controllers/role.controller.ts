@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { RoleType } from "@prisma/client";
+import { RoleType } from "../types/role.types";
 import { successResponse, errorResponse } from "../utils/response";
 import { getRolePermissions } from "../services/role.service";
 import { prisma } from "../config/db";

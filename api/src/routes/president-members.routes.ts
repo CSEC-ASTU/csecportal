@@ -1,5 +1,6 @@
 import express from "express";
-import { PrismaClient, RoleType } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
+import { RoleType } from "../types/role.types";
 import dotenv from "dotenv";
 
 // Load environment variables
@@ -207,7 +208,7 @@ router.get('/all', async (req, res) => {
         divisionId: true,
         profileImage: true,
         githubProfile: true,
-        skills: true,
+        skillsJson: true,
         division: {
           select: {
             id: true,
@@ -217,13 +218,26 @@ router.get('/all', async (req, res) => {
       }
     });
     
+    // Parse skillsJson to skills for compatibility
+    const parsedMembers = members.map((m: any) => {
+      if (m.skillsJson) {
+        try {
+          m.skills = JSON.parse(m.skillsJson);
+        } catch (e) {
+          m.skills = [];
+        }
+        delete m.skillsJson;
+      }
+      return m;
+    });
+
     return res.status(200).json({
       success: true,
       data: {
-        members: members,
-        count: members.length
+        members: parsedMembers,
+        count: parsedMembers.length,
       },
-      message: `Retrieved ${members.length} members`
+      message: `Retrieved ${parsedMembers.length} members`,
     });
   } catch (error) {
     console.error('Error getting all members:', error);

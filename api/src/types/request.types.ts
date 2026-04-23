@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { RoleType } from '@prisma/client';
+import { RoleType } from './role.types';
 
 /**
  * User information attached to the request by the authentication middleware

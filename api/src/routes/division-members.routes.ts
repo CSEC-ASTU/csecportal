@@ -262,22 +262,35 @@ router.get('/:divisionId', async (req, res) => {
         role: true,
         profileImage: true,
         githubProfile: true,
-        skills: true
-      }
+        skillsJson: true,
+      },
     });
-    
+
+    // Parse skillsJson for each member
+    const parsedMembers = members.map((m: any) => {
+      if (m.skillsJson) {
+        try {
+          m.skills = JSON.parse(m.skillsJson);
+        } catch (e) {
+          m.skills = [];
+        }
+        delete m.skillsJson;
+      }
+      return m;
+    });
+
     return res.status(200).json({
       success: true,
       data: {
         division: {
           id: division.id,
           name: division.name,
-          description: division.description
+          description: division.description,
         },
-        members: members,
-        count: members.length
+        members: parsedMembers,
+        count: parsedMembers.length,
       },
-      message: `Retrieved ${members.length} members from ${division.name}`
+      message: `Retrieved ${parsedMembers.length} members from ${division.name}`,
     });
   } catch (error) {
     console.error('Error getting division members:', error);

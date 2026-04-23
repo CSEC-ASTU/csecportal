@@ -167,7 +167,8 @@ export const register = async (req: Request, res: Response) => {
         gmailId,
         githubProfile,
         supportHandle,
-        skills: skills || [],
+        // Store skills as JSON string in `skillsJson` to match SQLite-compatible schema
+        skillsJson: skills && Array.isArray(skills) ? JSON.stringify(skills) : null,
         fieldOfStudy,
         historyNotes,
         lastName,
@@ -258,40 +259,57 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
       .json(errorResponse("Email and password are required"));
   }
 
+  console.log(`Login attempt for email=${email}`);
+
   return new Promise((resolve) => {
-    passport.authenticate(
-      "local",
-      { session: false },
-      async (err: any, user: any, info: any) => {
-        if (err) {
-          console.error("Authentication error:", err);
-          return resolve(
-            res.status(500).json(errorResponse("Authentication failed"))
-          );
+    try {
+      passport.authenticate(
+        "local",
+        { session: false },
+        async (err: any, user: any, info: any) => {
+          if (err) {
+            console.error("Passport authentication error:", err);
+            return resolve(
+              res
+                .status(500)
+                .json(errorResponse(err?.message || "Authentication failed"))
+            );
+          }
+
+          if (!user) {
+            console.log("Passport auth failed:", info?.message);
+            return resolve(
+              res
+                .status(401)
+                .json(errorResponse(info?.message || "Invalid credentials"))
+            );
+          }
+
+          try {
+            const token = generateToken(user);
+            res.cookie("jwt", token, cookieOptions);
+
+            const { password: _, ...userWithoutPassword } = user;
+            return resolve(
+              res.json(
+                successResponse(
+                  { user: userWithoutPassword, token },
+                  "Login successful"
+                )
+              )
+            );
+          } catch (tokenErr) {
+            console.error("Error generating token after auth:", tokenErr);
+            return resolve(
+              res.status(500).json(errorResponse("Authentication failed"))
+            );
+          }
         }
-
-        if (!user) {
-          return resolve(
-            res
-              .status(401)
-              .json(errorResponse(info?.message || "Invalid credentials"))
-          );
-        }
-
-        const token = generateToken(user);
-        res.cookie("jwt", token, cookieOptions);
-
-        const { password: _, ...userWithoutPassword } = user;
-        return resolve(
-          res.json(
-            successResponse(
-              { user: userWithoutPassword, token },
-              "Login successful"
-            )
-          )
-        );
-      }
-    )(req, res);
+      )(req, res);
+    } catch (ex) {
+      console.error("Unexpected error during authentication:", ex);
+      return resolve(res.status(500).json(errorResponse("Authentication failed")));
+    }
   });
 };
 

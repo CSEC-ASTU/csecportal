@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { RoleType } from '@prisma/client';
+import { RoleType } from './role.types';
 
 export interface JWTPayload {
   id: string;

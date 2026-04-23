@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 
@@ -33,13 +35,14 @@ async function main() {
 
     console.log('🏢 Creating Divisions...');
     const divisionsData = [
-        { name: 'Cyber Security', description: 'Focuses on ethical hacking, CTFs, and security research.' },
-        { name: 'Software Development', description: 'Building modern web and mobile applications.' },
         { name: 'Competitive Programming', description: 'Algorithms and data structures for competitive coding.' },
-        { name: 'Data Science & AI', description: 'Machine learning, AI research, and data analytics.' },
-        { name: 'Capacity Building & Design', description: 'UI/UX design and professional development.' },
+        { name: 'Development Division', description: 'Building modern web and mobile applications.' },
+        { name: 'Cyber Division', description: 'Focuses on ethical hacking, CTFs, and security research.' },
+        { name: 'Data Science', description: 'Machine learning, AI research, and data analytics.' },
+        { name: 'Capacity Building Division', description: 'UI/UX design and professional development.' },
+        { name: 'Social Media Division', description: 'Handles communications, social presence and outreach.' },
+        { name: 'Blockchain Team', description: 'Research and projects around blockchain and decentralized systems.' },
     ];
-
     const divisions = {};
     for (const div of divisionsData) {
         divisions[div.name] = await prisma.division.create({ data: div });
@@ -59,11 +62,11 @@ async function main() {
 
     console.log('👨‍💼 Creating Division Heads...');
     const heads = [
-        { name: 'Cyber Head', email: 'cyber@csec.com', role: 'CYBER_HEAD', div: 'Cyber Security' },
-        { name: 'Dev Head', email: 'dev@csec.com', role: 'DEV_HEAD', div: 'Software Development' },
+        { name: 'Cyber Head', email: 'cyber@csec.com', role: 'CYBER_HEAD', div: 'Cyber Division' },
+        { name: 'Dev Head', email: 'dev@csec.com', role: 'DEV_HEAD', div: 'Development Division' },
         { name: 'CPD Head', email: 'cpd@csec.com', role: 'CPD_HEAD', div: 'Competitive Programming' },
-        { name: 'DS Head', email: 'ds@csec.com', role: 'DATA_SCIENCE_HEAD', div: 'Data Science & AI' },
-        { name: 'CBD Head', email: 'cbd@csec.com', role: 'CBD_HEAD', div: 'Capacity Building & Design' },
+        { name: 'DS Head', email: 'ds@csec.com', role: 'DATA_SCIENCE_HEAD', div: 'Data Science' },
+        { name: 'CBD Head', email: 'cbd@csec.com', role: 'CBD_HEAD', div: 'Capacity Building Division' },
     ];
 
     for (const head of heads) {
@@ -105,7 +108,7 @@ async function main() {
             title: 'Welcome to the CSEC Portal',
             content: 'We are excited to launch the new portal for our members. Stay tuned for more updates!',
             authorId: president.id,
-            divisionId: divisions['Software Development'].id,
+            divisionId: divisions['Development Division'].id,
         },
     });
 
