@@ -1,10 +1,11 @@
-import express from "express";
+import express, { Request } from "express";
 import memberController from "../controllers/member.controller";
 import { authenticateToken } from "../middlewares/auth.middleware";
+import { RequestWithUser } from "../types/request.types";
 import path from "path";
 import fs from "fs";
 import { upload, uploadProfilePic } from "../config/multer";
-import { uploadBufferToCloudinary, uploadToCloudinary } from "../config/cloudinary";
+import { uploadBufferToCloudinary } from "../config/cloudinary";
 import { prisma } from "../config/db";
 import { successResponse, errorResponse } from "../utils/response";
 
@@ -61,7 +62,7 @@ router.post(
   "/update-profile-picture/:memberId",
   authenticateToken,
   uploadProfilePic.single("profilepic"),
-  async (req, res) => {
+  async (req: RequestWithUser, res) => {
     try {
       const { memberId } = req.params;
       const userId = req.user?.id;
@@ -72,7 +73,7 @@ router.post(
       }
 
       // Check authorization
-      if (userId !== memberId && req.user?.role !== "PRESIDENT") {
+      if (userId !== memberId && !req.user?.roles?.includes("PRESIDENT" as any)) {
         return res.status(403).json(errorResponse("Unauthorized"));
       }
 
@@ -114,7 +115,7 @@ router.post(
 router.post(
   "/simple-profile-picture/:memberId",
   uploadProfilePic.single("profilepicture"),
-  async (req, res) => {
+  async (req: Request, res) => {
     try {
       const { memberId } = req.params;
 
@@ -164,7 +165,6 @@ router.post(
       return res.status(500).json(errorResponse("Failed to update profile picture"));
     }
   }
-);
 );
 
 // Remove division head - accessible by president only
