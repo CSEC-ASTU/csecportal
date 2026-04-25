@@ -37,7 +37,12 @@ export function Verification() {
   const router = useRouter();
 
   // Cleanly accessing state
-  const userEmail = useSelector((state: RootState) => state?.auth?.user?.email || "your email");
+  const userEmail = useSelector((state: RootState) => state?.auth?.user?.email);
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -46,11 +51,16 @@ export function Verification() {
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     try {
+      if (!userEmail) {
+        toast.error("Unable to verify: missing email.");
+        return;
+      }
+
       await verifyOtp({ email: userEmail, otp: data.pin }).unwrap();
       toast.success("Verification successful");
       router.push("/dashboard/home");
     } catch (error: any) {
-      toast.error(error?.data?.message || "Invalid verification code.");
+      toast.error(error?.data?.error || error?.data?.message || "Invalid verification code.");
     }
   }
 
@@ -72,9 +82,14 @@ export function Verification() {
           <h2 className="text-4xl font-thin tracking-tighter text-text1">
             Verify <span className="font-normal">Account.</span>
           </h2>
-          <p className="text-sm text-text2 font-light leading-relaxed">
-            We&apos;ve sent a security code to <br />
-            <span className="font-medium text-text1">{userEmail}</span>
+            <p className="text-sm text-text2 font-light leading-relaxed">
+            We&apos;ve sent a security code to
+            <br />
+            {mounted && userEmail ? (
+              <span className="font-medium text-text1">{userEmail}</span>
+            ) : (
+              <span className="font-medium text-text1"> </span>
+            )}
           </p>
         </div>
       </div>

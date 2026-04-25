@@ -60,6 +60,38 @@ async function main() {
         },
     });
 
+    // Create groups for each division so the client can list selectable groups
+    console.log('🏷️ Creating Groups for Divisions...');
+    const groupsData = [
+        { division: 'Competitive Programming', groups: ['Div 1', 'Div 2'] },
+        { division: 'Development Division', groups: ['Senior Developer', 'Junior Developer'] },
+        { division: 'Cyber Division', groups: ['Members'] },
+        { division: 'Data Science', groups: ['Members'] },
+        { division: 'Capacity Building Division', groups: ['Members'] },
+        { division: 'Social Media Division', groups: ['Members'] },
+        { division: 'Blockchain Team', groups: ['Members'] },
+    ];
+
+    const groupsByDivision = {};
+    for (const g of groupsData) {
+        const divObj = divisions[g.division];
+        if (!divObj) continue; // skip if division missing
+        groupsByDivision[g.division] = [];
+        for (const name of g.groups) {
+            const created = await prisma.group.create({
+                data: {
+                    name,
+                    description: `${name} group of ${g.division}`,
+                    divisionId: divObj.id,
+                    createdById: president.id,
+                },
+            });
+            groupsByDivision[g.division].push(created);
+        }
+    }
+
+    
+
     console.log('👨‍💼 Creating Division Heads...');
     const heads = [
         { name: 'Cyber Head', email: 'cyber@csec.com', role: 'CYBER_HEAD', div: 'Cyber Division' },

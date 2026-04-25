@@ -135,6 +135,58 @@ const getGroupsByDivision = async (req: Request, res: Response) => {
       return res.status(404).json(errorResponse("Division not found"));
     }
     const groups = await prisma.group.findMany({ where: { divisionId } });
+    // If there are no groups for this division, create sensible defaults
+    if (!groups || groups.length === 0) {
+      // Define default groups based on division name
+      const nameLower = (division.name || "").toLowerCase();
+      let defaultGroupNames: string[] = ["Members"];
+
+      if (nameLower.includes("competitive programming")) {
+        defaultGroupNames = ["Div 1", "Div 2"];
+      } else if (nameLower.includes("development")) {
+        defaultGroupNames = ["Senior Developer", "Junior Developer"];
+      } else if (nameLower.includes("design")) {
+        defaultGroupNames = ["Designers"];
+      } else if (nameLower.includes("research")) {
+        defaultGroupNames = ["Researchers"];
+      }
+
+      // Pick a valid user id to assign as createdById. Prefer the president, then division head, then any user.
+      let creator = await prisma.user.findFirst({ where: { role: "PRESIDENT" } });
+      if (!creator && division.headId) {
+        creator = await prisma.user.findUnique({ where: { id: division.headId } });
+      }
+      if (!creator) {
+        creator = await prisma.user.findFirst();
+      }
+
+      // If we have a creator, persist default groups so subsequent operations (like inviting) work.
+      let createdGroups: any[] = [];
+      if (creator) {
+        for (const gName of defaultGroupNames) {
+          try {
+            const created = await prisma.group.create({
+              data: {
+                name: gName,
+                description: `${gName} of ${division.name}`,
+                divisionId: division.id,
+                createdById: creator.id,
+              },
+            });
+            createdGroups.push(created);
+          } catch (e) {
+            // ignore individual create failures and continue
+            console.error("Failed to create default group:", e);
+          }
+        }
+      }
+
+      const returnGroups = createdGroups.length > 0 ? createdGroups : [];
+      return res.json(
+        successResponse(returnGroups, "Division groups retrieved successfully")
+      );
+    }
+
     return res.json(
       successResponse(groups, "Division groups retrieved successfully")
     );
