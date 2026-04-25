@@ -8,6 +8,8 @@ import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { setUserData } from "@/lib/features/slices/auth";
 
 import { formSchema } from "@/validation/login";
 import { useLoginMutation } from "@/lib/features/api";
@@ -40,12 +42,19 @@ export function LoginForm() {
     },
   });
 
+  const dispatch = useDispatch();
+
   async function onSubmit(values: FormValues) {
     try {
-      await login({
+      const result = await login({
         email: values.email,
         password: values.password,
       }).unwrap();
+
+      // Update Redux state so UI updates immediately
+      if (result?.user && result?.token) {
+        dispatch(setUserData({ user: result.user, token: result.token }));
+      }
 
       toast.success("Welcome back!");
       router.push("/dashboard/home");

@@ -209,8 +209,22 @@ export const register = async (req: Request, res: Response) => {
         // Generate a 6-digit OTP code
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-        // Store OTP in the database (will implement this later)
-        // For now, just send the email with the OTP
+        // Set expiry to 1 hour from now
+        const otpExpiry = new Date(Date.now() + 3600000);
+
+        // Store OTP in the verificationToken table
+        try {
+          await prisma.verificationToken.create({
+            data: {
+              userId: user.id,
+              token: otp,
+              expiresAt: otpExpiry,
+            },
+          });
+        } catch (dbErr) {
+          console.error("Failed to store verification token:", dbErr);
+        }
+
         // Extract student ID from the request body or use a default value
         const studentId = req.body.studentId || "Not Available";
 
@@ -608,7 +622,21 @@ export const resendOtp = async (req: Request, res: Response) => {
     const otpExpiry = new Date(Date.now() + 3600000);
 
     // TODO: Store the OTP in the database
-    // For now, we'll just log it and rely on the email delivery
+    // Store the OTP in the verificationToken table for email verification
+    try {
+      if (purpose === "email_verification") {
+        await prisma.verificationToken.create({
+          data: {
+            userId: user.id,
+            token: otp,
+            expiresAt: otpExpiry,
+          },
+        });
+      }
+    } catch (dbErr) {
+      console.error("Failed to store resend verification token:", dbErr);
+    }
+
     console.log(
       `New OTP generated for ${email}: ${otp}, purpose: ${purpose}, expires at: ${otpExpiry}`
     );

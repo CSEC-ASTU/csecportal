@@ -131,7 +131,7 @@ export default function AddNewMembers() {
                 disabled={isDivisionsLoading}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select Divisions" />
+                    <SelectValue placeholder="Select a division" />
                 </SelectTrigger>
                 <SelectContent>
                   {divisions.map((d: any) => (
@@ -170,9 +170,28 @@ export default function AddNewMembers() {
                       {g.name}
                     </SelectItem>
                   ))}
+                  {!isGroupsLoading && groups.length === 0 && selectedDivision && (
+                    <SelectItem disabled value="no-groups">
+                      No groups found — creating default groups
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          {/* Small status / preview line for UX */}
+          <div className="mt-2 text-sm text-text2">
+            {!selectedDivision && <div>Select a division to load groups.</div>}
+            {selectedDivision && isGroupsLoading && <div>Loading groups...</div>}
+            {selectedDivision && !isGroupsLoading && groups.length === 0 && (
+              <div>No groups found — default groups were created for this division.</div>
+            )}
+            {selectedDivision && selectedGroup && (
+              <div>
+                Selected: <strong className="text-text1">{selectedDivision.name}</strong> — <strong className="text-text1">{selectedGroup.name}</strong>
+              </div>
+            )}
           </div>
 
           {/* Full Name */}

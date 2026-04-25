@@ -39,6 +39,11 @@ export function VerifyPasswordOtp() {
   const router = useRouter();
 
   const userEmail = useSelector((state: RootState) => state?.auth?.user?.email);
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -49,6 +54,11 @@ export function VerifyPasswordOtp() {
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     try {
+      if (!userEmail) {
+        toast.error("Unable to verify: missing email.");
+        return;
+      }
+
       await verifyOtp({ email: userEmail, otp: data.pin }).unwrap();
       toast.success("Verification successful!");
     } catch (error: any) {
@@ -92,9 +102,12 @@ export function VerifyPasswordOtp() {
                   </InputOTPGroup>
                 </InputOTP>
               </FormControl>
-              <FormDescription>
-                Please enter the verification code we sent to your email.
-              </FormDescription>
+                    <FormDescription>
+                      Please enter the verification code we sent to your email.
+                      {mounted && userEmail ? (
+                        <div className="text-sm">Sent to: {userEmail}</div>
+                      ) : null}
+                    </FormDescription>
               <FormMessage />
             </FormItem>
           )}
