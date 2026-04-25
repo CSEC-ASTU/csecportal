@@ -3,9 +3,10 @@ import memberController from "../controllers/member.controller";
 import { authenticateToken } from "../middlewares/auth.middleware";
 import path from "path";
 import fs from "fs";
-import upload from "../config/multer";
+import { upload, uploadProfilePic } from "../config/multer";
+import { uploadBufferToCloudinary, uploadToCloudinary } from "../config/cloudinary";
 import { prisma } from "../config/db";
-import { uploadToCloudinary } from "../config/cloudinary";
+import { successResponse, errorResponse } from "../utils/response";
 
 const router = express.Router();
 
@@ -59,62 +60,31 @@ router.delete("/:memberId", memberController.deleteMember);
 router.post(
   "/update-profile-picture/:memberId",
   authenticateToken,
-  upload.single("profilepic"),
-  memberController.updateProfilePicture
-);
-
-// Simple profile picture update endpoint that uses Cloudinary - no authentication required
-router.post(
-  "/simple-profile-picture/:memberId",
-  upload.single("profilepicture"),
+  uploadProfilePic.single("profilepic"),
   async (req, res) => {
     try {
       const { memberId } = req.params;
+      const userId = req.user?.id;
 
-      // Validate memberId format (MongoDB ObjectId is 24 hex characters)
-      if (
-        !memberId ||
-        memberId.length !== 24 ||
-        !/^[0-9a-fA-F]{24}$/.test(memberId)
-      ) {
-        return res.status(400).json({
-          success: false,
-          message:
-            "Invalid member ID format. Must be a valid MongoDB ObjectId (24 hex characters).",
-        });
+      // Validate memberId
+      if (!memberId) {
+        return res.status(400).json(errorResponse("Member ID is required"));
       }
 
-      // Check if member exists
-      let existingMember;
-      try {
-        existingMember = await prisma.user.findUnique({
-          where: { id: memberId },
-        });
-      } catch (dbError) {
-        console.error("Database error:", dbError);
-        return res.status(400).json({
-          success: false,
-          message: "Invalid member ID or database error",
-          error: dbError.message,
-        });
-      }
-
-      if (!existingMember) {
-        return res
-          .status(404)
-          .json({ success: false, message: "Member not found" });
+      // Check authorization
+      if (userId !== memberId && req.user?.role !== "PRESIDENT") {
+        return res.status(403).json(errorResponse("Unauthorized"));
       }
 
       // Check if file was uploaded
       if (!req.file) {
-        return res
-          .status(400)
-          .json({ success: false, message: "No profile picture uploaded" });
+        return res.status(400).json(errorResponse("No profile picture uploaded"));
       }
 
       // Upload to Cloudinary
-      const cloudinaryResult = await uploadToCloudinary(
-        req.file.path,
+      const cloudinaryResult = await uploadBufferToCloudinary(
+        req.file.buffer,
+        req.file.originalname,
         "profile-pictures"
       );
 
@@ -130,24 +100,71 @@ router.post(
         },
       });
 
-      // Return the updated member with the new profile image URL
-      return res.json({
-        success: true,
-        message: "Profile picture updated successfully",
-        data: {
-          id: updatedMember.id,
-          name: updatedMember.freeName,
-          email: updatedMember.email,
-          profileImage: updatedMember.profileImage,
-        },
-      });
+      return res.json(
+        successResponse(updatedMember, "Profile picture updated successfully")
+      );
     } catch (error) {
-      console.error("Simple profile picture update error:", error);
-      return res
-        .status(500)
-        .json({ success: false, message: "Failed to update profile picture" });
+      console.error("Update profile picture error:", error);
+      return res.status(500).json(errorResponse("Failed to update profile picture"));
     }
   }
+);
+
+// Simple profile picture update endpoint that uses Cloudinary - no authentication required
+router.post(
+  "/simple-profile-picture/:memberId",
+  uploadProfilePic.single("profilepicture"),
+  async (req, res) => {
+    try {
+      const { memberId } = req.params;
+
+      // Validate memberId format
+      if (!memberId) {
+        return res.status(400).json(errorResponse("Member ID is required"));
+      }
+
+      // Check if member exists
+      const existingMember = await prisma.user.findUnique({
+        where: { id: memberId },
+      });
+
+      if (!existingMember) {
+        return res.status(404).json(errorResponse("Member not found"));
+      }
+
+      // Check if file was uploaded
+      if (!req.file) {
+        return res.status(400).json(errorResponse("No profile picture uploaded"));
+      }
+
+      // Upload to Cloudinary
+      const cloudinaryResult = await uploadBufferToCloudinary(
+        req.file.buffer,
+        req.file.originalname,
+        "profile-pictures"
+      );
+
+      // Update the member's profile picture URL in the database
+      const updatedMember = await prisma.user.update({
+        where: { id: memberId },
+        data: { profileImage: cloudinaryResult.secure_url },
+        select: {
+          id: true,
+          freeName: true,
+          email: true,
+          profileImage: true,
+        },
+      });
+
+      return res.json(
+        successResponse(updatedMember, "Profile picture updated successfully")
+      );
+    } catch (error) {
+      console.error("Simple profile picture update error:", error);
+      return res.status(500).json(errorResponse("Failed to update profile picture"));
+    }
+  }
+);
 );
 
 // Remove division head - accessible by president only

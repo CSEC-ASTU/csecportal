@@ -1,6 +1,8 @@
 "use client";
 
 import React from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/features/store";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -24,13 +26,20 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
     { href: "/dashboard/profile/heads-up", label: "Heads Up", icon: NotepadText, active: paths[2] === "heads-up" },
   ];
 
+  const user = useSelector((state: RootState) => state?.auth?.user);
+  const displayName = user?.fullName || user?.freeName || "User";
+  const displayRole = user?.role || "Member";
+  const displaySeen = user?.lastSeen || "recently";
+  const completion = user?.profileCompletion || 23;
+
   return (
     <div className="w-full mx-auto py-6 space-y-8">
       <ProfileUpper
-        name="Klaus Mikaelson"
-        role="Original Vampire"
-        seen="two days ago"
-        completion={23}
+        name={displayName}
+        role={displayRole}
+        seen={displaySeen}
+        completion={completion}
+        image={user?.profileImage}
       />
 
       <div className="border-b flex space-x-8">
@@ -57,14 +66,14 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
   );
 }
 
-function ProfileUpper({ name, role, seen, completion }: { name: string; role: string; seen: string; completion: number }) {
+function ProfileUpper({ name, role, seen, completion, image }: { name: string; role: string; seen: string; completion: number; image?: string }) {
   const isActive = true;
 
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
       <div className="flex items-center gap-6">
         <Avatar className="size-24 border">
-          <AvatarImage src="https://github.com/shadcn.png" />
+          <AvatarImage src={image ? image : "https://github.com/shadcn.png"} />
           <AvatarFallback>{name.charAt(0)}</AvatarFallback>
         </Avatar>
 

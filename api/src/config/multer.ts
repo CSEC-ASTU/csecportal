@@ -8,7 +8,7 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Configure storage
+// Configure storage for local disk
 const storage = multer.diskStorage({
   destination: function (_req, _file, cb) {
     cb(null, uploadsDir);
@@ -20,6 +20,9 @@ const storage = multer.diskStorage({
   }
 });
 
+// Configure memory storage for Cloudinary uploads (profile pictures)
+const memoryStorage = multer.memoryStorage();
+
 // Configure multer to accept all file types by default.
 // If you want to restrict to specific MIME types, update this filter.
 const upload = multer({ 
@@ -29,6 +32,22 @@ const upload = multer({
   }
 });
 
+// Dedicated multer for profile picture uploads (Cloudinary)
+const uploadProfilePic = multer({
+  storage: memoryStorage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB max for profile pictures
+  },
+  fileFilter: (_req, file, cb) => {
+    // Only allow image files
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (allowedMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  }
+});
 
-
+export { upload, uploadProfilePic };
 export default upload;

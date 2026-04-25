@@ -61,6 +61,7 @@ export const Header = () => {
           <HeaderProfile
             name={mounted ? user?.freeName || "User" : "User"}
             role={mounted ? user?.role || "Member" : "Member"}
+            image={mounted ? (user?.profileImage || user?.profilePic || user?.avatar) : undefined}
             onLogout={handleLogout}
           />
         </div>
@@ -106,7 +107,7 @@ const HeaderInfo = () => {
 
 
 
-const HeaderProfile = ({ name, role, onLogout }: { name: string; role: string; onLogout: () => void }) => (
+const HeaderProfile = ({ name, role, image, onLogout }: { name: string; role: string; image?: string; onLogout: () => void }) => (
   <DropdownMenu>
     <DropdownMenuTrigger asChild>
       <button className="flex items-center gap-3 outline-none group">
@@ -115,8 +116,8 @@ const HeaderProfile = ({ name, role, onLogout }: { name: string; role: string; o
           <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">{role}</span>
         </div>
         <Avatar className="size-9 border transition-all group-hover:border-primary/50">
-          <AvatarImage src="https://github.com/shadcn.png" />
-          <AvatarFallback className="text-xs">{name.charAt(0)}</AvatarFallback>
+          <AvatarImage src={image ? image : "https://github.com/shadcn.png"} />
+          <AvatarFallback className="text-xs">{(name && name.length) ? name.charAt(0) : "U"}</AvatarFallback>
         </Avatar>
         <ChevronDown className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
       </button>

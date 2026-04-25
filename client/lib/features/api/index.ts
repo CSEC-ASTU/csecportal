@@ -17,7 +17,7 @@ export const apiSlice = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: SERVER_URI,
     credentials: "include",
-    prepareHeaders: (headers, { getState }) => {
+      prepareHeaders: (headers, { getState }) => {
       // Get token from Redux state if available
       const token = (getState() as RootState).auth.token;
 
@@ -34,9 +34,9 @@ export const apiSlice = createApi({
       } else {
         headers.set("Authorization", `Bearer ${token}`);
       }
-
-      headers.set("Content-Type", "application/json");
-      return headers;
+        // Don't force a global Content-Type header here — leave it to fetch
+        // so multipart/FormData requests can set the correct boundary header.
+        return headers;
     },
   }),
   tagTypes: [
