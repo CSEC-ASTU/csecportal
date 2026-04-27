@@ -1,7 +1,8 @@
 import { z } from "zod";
 
 export const requiredInformationSchema = z.object({
-  image: z.string().optional(),
+  // image may be a FileList or File when uploading; accept any to avoid validation errors
+  image: z.any().optional(),
   first_name: z.string().optional(),
   last_name: z.string().optional(),
   mobile_number: z.string().optional(),

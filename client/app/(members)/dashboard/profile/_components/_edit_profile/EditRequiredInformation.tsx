@@ -9,9 +9,11 @@ import { z } from "zod";
 import { requiredInformationSchema } from "@/lib/validations/user-profile.validation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import FormInput from "./FormInput";
-import { useSelector } from "react-redux";
-import { RootState } from "@/lib/features/store";
 import { useGetMemberByIdQuery, useUpdateOwnProfileMutation } from "@/lib/features/api";
+import { useDispatch, useSelector } from "react-redux";
+import { setUserData } from "@/lib/features/slices/auth";
+import { setCookie, getCookie } from "cookies-next";
+import { RootState } from "@/lib/features/store";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -21,6 +23,8 @@ export default function EditRequiredInformation({ onNext }: { onNext?: () => voi
   const { data: memberData } = useGetMemberByIdQuery(memberId);
   const member = (memberData as any)?.data;
   const [updateProfile, { isLoading }] = useUpdateOwnProfileMutation();
+  const dispatch = useDispatch();
+  const currentToken = useSelector((state: RootState) => state.auth.token) || getCookie("auth_token");
 
   const form = useForm<z.infer<typeof requiredInformationSchema>>({
     resolver: zodResolver(requiredInformationSchema),
@@ -66,17 +70,68 @@ export default function EditRequiredInformation({ onNext }: { onNext?: () => voi
 
   const onSubmit = async (data: z.infer<typeof requiredInformationSchema>) => {
     try {
-      const payload: Record<string, any> = {
-        freeName: `${data.first_name} ${data.last_name}`.trim(),
+      // Prepare payload; if image is a File, send FormData
+      let result: any = null;
+
+      const freeName = `${data.first_name} ${data.last_name}`.trim();
+
+      // Build payload fields
+      const simplePayload: Record<string, any> = {
+        freeName,
         phoneNumber: data.mobile_number,
         github: data.github,
         telegram: data.telegram_handle,
       };
-      if (data.image) payload.profileImage = data.image;
-      await updateProfile(payload).unwrap();
+
+      if (data.image && typeof (data.image as any)?.name === "string") {
+        const form = new FormData();
+        Object.keys(simplePayload).forEach((k) => {
+          if (simplePayload[k] !== undefined && simplePayload[k] !== "") {
+            form.append(k, simplePayload[k]);
+          }
+        });
+        // image might be a File or FileList
+        const fileCandidate: any = data.image;
+        if (fileCandidate && fileCandidate[0]) {
+          form.append("profileImage", fileCandidate[0]);
+        } else if (fileCandidate) {
+          form.append("profileImage", fileCandidate);
+        }
+
+        result = await updateProfile(form).unwrap();
+      } else {
+        result = await updateProfile(simplePayload).unwrap();
+      }
+
+      // Update Redux and cookies with updated user if returned
+      const updatedUser = (result as any)?.data || (result as any)?.user || null;
+      if (updatedUser) {
+        // keep existing token
+        const tokenValue = typeof currentToken === "string" ? currentToken : (currentToken as any)?.toString?.() || null;
+        dispatch(setUserData({ user: updatedUser, token: tokenValue }));
+        try {
+          setCookie("auth_user", JSON.stringify(updatedUser), {
+            maxAge: 30 * 24 * 60 * 60,
+            path: "/",
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+          });
+        } catch (e) {
+          console.warn("Failed to set auth_user cookie", e);
+        }
+        // Debug logs
+        try {
+          console.log("[DEBUG] updateProfile response:", result);
+          console.log("[DEBUG] auth_user cookie after update:", getCookie("auth_user"));
+        } catch (e) {
+          console.warn("[DEBUG] failed to log update response", e);
+        }
+      }
+
       toast.success("Profile updated successfully");
       onNext?.();
-    } catch {
+    } catch (err) {
+      console.error("Profile update failed:", err);
       toast.error("Failed to update profile");
     }
   };

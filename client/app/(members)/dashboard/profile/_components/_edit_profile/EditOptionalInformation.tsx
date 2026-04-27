@@ -9,11 +9,13 @@ import { z } from "zod";
 import { optionalInformationSchema } from "@/lib/validations/user-profile.validation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import FormInput from "./FormInput";
-import { useSelector } from "react-redux";
-import { RootState } from "@/lib/features/store";
 import { useGetMemberByIdQuery, useUpdateOwnProfileMutation } from "@/lib/features/api";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useDispatch, useSelector } from "react-redux";
+import { setUserData } from "@/lib/features/slices/auth";
+import { setCookie, getCookie } from "cookies-next";
+import { RootState } from "@/lib/features/store";
 
 export default function EditOptionalInformation({ onNext }: { onNext?: () => void }) {
   const router = useRouter();
@@ -21,6 +23,8 @@ export default function EditOptionalInformation({ onNext }: { onNext?: () => voi
   const { data: memberData } = useGetMemberByIdQuery(memberId);
   const member = (memberData as any)?.data;
   const [updateProfile, { isLoading }] = useUpdateOwnProfileMutation();
+  const dispatch = useDispatch();
+  const currentToken = useSelector((state: RootState) => state.auth.token) || getCookie("auth_token");
 
   const form = useForm<z.infer<typeof optionalInformationSchema>>({
     resolver: zodResolver(optionalInformationSchema),
@@ -58,10 +62,35 @@ export default function EditOptionalInformation({ onNext }: { onNext?: () => voi
       const payload: Record<string, any> = {};
       if (data.bio) payload.bio = data.bio;
       if (data.linkedin_account) payload.linkedin = data.linkedin_account;
-      await updateProfile(payload).unwrap();
+
+      const res = await updateProfile(payload).unwrap();
+      const updatedUser = (res as any)?.data || (res as any)?.user || null;
+      if (updatedUser) {
+        const tokenValue = typeof currentToken === "string" ? currentToken : (currentToken as any)?.toString?.() || null;
+        dispatch(setUserData({ user: updatedUser, token: tokenValue }));
+        try {
+          setCookie("auth_user", JSON.stringify(updatedUser), {
+            maxAge: 30 * 24 * 60 * 60,
+            path: "/",
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+          });
+        } catch (e) {
+          console.warn("Failed to set auth_user cookie", e);
+        }
+        // Debug logs
+        try {
+          console.log("[DEBUG] optional update response:", res);
+          console.log("[DEBUG] auth_user cookie after optional update:", getCookie("auth_user"));
+        } catch (e) {
+          console.warn("[DEBUG] failed to log optional update response", e);
+        }
+      }
+
       toast.success("Optional info updated successfully");
       onNext?.();
-    } catch {
+    } catch (err) {
+      console.error("Optional profile update failed:", err);
       toast.error("Failed to update profile");
     }
   };

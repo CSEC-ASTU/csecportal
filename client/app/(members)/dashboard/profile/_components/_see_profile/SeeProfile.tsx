@@ -14,11 +14,31 @@ import { Badge } from "@/components/ui/badge";
 
 export default function SeeProfile() {
   const [activeTab, setActiveTab] = useState("personal");
+  const [mounted, setMounted] = React.useState(false);
   const memberId = useSelector((state: RootState) => state?.auth?.user?.id);
   const { data: members, isLoading: memberLoading } = useGetMemberByIdQuery(memberId ?? "", { skip: !memberId });
   const member = (members as any)?.data;
 
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
   if (memberLoading) {
+    return (
+      <div className="w-full p-6 space-y-6">
+        <Skeleton className="h-10 w-48" />
+        <Skeleton className="h-10 w-full" />
+        <div className="grid grid-cols-2 gap-6 pt-4">
+          {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}
+        </div>
+      </div>
+    );
+  }
+
+  // Avoid rendering a different tree on server vs client: before the client has mounted
+  // show the same skeleton/loading UI as when data is loading. Only show 'Member not found'
+  // after the client has mounted to prevent hydration mismatches.
+  if (!member && !mounted) {
     return (
       <div className="w-full p-6 space-y-6">
         <Skeleton className="h-10 w-48" />

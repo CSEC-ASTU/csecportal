@@ -98,8 +98,10 @@ export const register = async (req: Request, res: Response) => {
         .json(errorResponse("Student year must be a number between 1 and 5"));
     }
 
+    const emailNormalized = String(email).toLowerCase();
+
     // Check if email already exists
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await prisma.user.findUnique({ where: { email: emailNormalized } });
     if (existingUser) {
       return res.status(400).json(errorResponse("Email already exists"));
     }
@@ -158,7 +160,7 @@ export const register = async (req: Request, res: Response) => {
     const user = await prisma.user.create({
       data: {
         freeName,
-        email,
+        email: emailNormalized,
         password: hashedPassword,
         contact: phone, // Map phone to contact field in schema
         note: telegram, // Store telegram in note field
@@ -273,7 +275,18 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
       .json(errorResponse("Email and password are required"));
   }
 
-  console.log(`Login attempt for email=${email}`);
+  // Normalize email and log for diagnostics
+  const emailNormalized = String(email).toLowerCase();
+  req.body.email = emailNormalized;
+  console.log(`Login attempt for email=${emailNormalized}`);
+
+  // Pre-check: does the user exist in DB?
+  try {
+    const preUser = await prisma.user.findUnique({ where: { email: emailNormalized }, select: { id: true, email: true, status: true, isEmailVerified: true } });
+    console.log('Pre-auth user lookup:', preUser ? { id: preUser.id, email: preUser.email, status: preUser.status, isEmailVerified: preUser.isEmailVerified } : 'not found');
+  } catch (preErr) {
+    console.error('Pre-auth lookup error:', preErr);
+  }
 
   return new Promise((resolve) => {
     try {
@@ -292,11 +305,41 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
 
           if (!user) {
             console.log("Passport auth failed:", info?.message);
-            return resolve(
-              res
-                .status(401)
-                .json(errorResponse(info?.message || "Invalid credentials"))
-            );
+            // Fallback: try direct DB/password verification in case Passport failed
+            try {
+              const dbUser = await prisma.user.findUnique({
+                where: { email: emailNormalized },
+                select: { id: true, email: true, password: true, role: true, freeName: true, status: true },
+              });
+
+              if (!dbUser) {
+                console.log("Fallback auth: user not found in DB for", email);
+                return resolve(
+                  res
+                    .status(401)
+                    .json(errorResponse(info?.message || "Invalid credentials"))
+                );
+              }
+
+              if (dbUser.status !== "ACTIVE") {
+                return resolve(res.status(403).json(errorResponse("Your account is not active")));
+              }
+
+              const isValid = await bcrypt.compare(password, dbUser.password);
+              if (!isValid) {
+                console.log("Fallback auth: password mismatch for", email);
+                return resolve(res.status(401).json(errorResponse("Invalid credentials")));
+              }
+
+              // Successful fallback authentication
+              const token = generateToken(dbUser as any);
+              res.cookie("jwt", token, cookieOptions);
+              const { password: _p, ...userSafe } = dbUser as any;
+              return resolve(res.json(successResponse({ user: userSafe, token }, "Login successful (fallback)")));
+            } catch (fallbackErr) {
+              console.error("Fallback authentication error:", fallbackErr);
+              return resolve(res.status(401).json(errorResponse(info?.message || "Invalid credentials")));
+            }
           }
 
           try {

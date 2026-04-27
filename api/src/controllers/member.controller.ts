@@ -3,6 +3,7 @@ import { prisma } from "../config/db";
 import * as path from "path";
 import * as fs from "fs";
 import { MongoClient } from "mongodb";
+import { uploadToCloudinary } from "../config/cloudinary";
 import {
   sendWelcomeEmail,
   sendDivisionHeadEmail,
@@ -1071,6 +1072,27 @@ const updateOwnProfile = async (req: Request, res: Response) => {
 
     // Ensure freeName is set from fullName if provided
     filteredUpdateData = ensureFreeNameFromFullName(filteredUpdateData);
+
+    // If a file was uploaded (handled by multer), upload it to Cloudinary
+    if ((req as any).file) {
+      try {
+        const filePath = (req as any).file.path;
+        const cloudResult = await uploadToCloudinary(filePath, "profile-pictures");
+        if (cloudResult && cloudResult.secure_url) {
+          filteredUpdateData.profileImage = cloudResult.secure_url;
+        }
+
+        // Attempt to remove the temporary local file
+        try {
+          fs.unlinkSync(filePath);
+        } catch (unlinkErr) {
+          console.warn("Failed to remove temp upload file:", unlinkErr.message);
+        }
+      } catch (uploadErr) {
+        console.error("Failed to upload profile image:", uploadErr);
+        // Continue without failing the entire request; image won't be updated
+      }
+    }
 
     // Update the user's profile with only the allowed fields
     const updatedUser = await prisma.user.update({

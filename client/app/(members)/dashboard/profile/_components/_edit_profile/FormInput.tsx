@@ -62,7 +62,13 @@ export default function FormInput(data: IFormInput) {
                     type="file"
                     accept="image/*"
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                    {...field}
+                    name={field.name}
+                    ref={field.ref}
+                    onBlur={field.onBlur}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      // Pass FileList to react-hook-form so callers can detect files
+                      field.onChange(e.target.files);
+                    }}
                   />
 
                   <div className="absolute inset-0 bg-[url('/your-placeholder.jpg')] bg-cover bg-center opacity-30 pointer-events-none rounded-xl"></div>
