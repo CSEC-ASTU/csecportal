@@ -68,13 +68,15 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
 
 function ProfileUpper({ name, role, seen, completion, image }: { name: string; role: string; seen: string; completion: number; image?: string }) {
   const isActive = true;
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
 
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
       <div className="flex items-center gap-6">
         <Avatar className="size-24 border">
           <AvatarImage src={image ? image : "https://github.com/shadcn.png"} />
-          <AvatarFallback>{name.charAt(0)}</AvatarFallback>
+          <AvatarFallback suppressHydrationWarning>{mounted ? name.charAt(0) : ""}</AvatarFallback>
         </Avatar>
 
         <div className="space-y-1">

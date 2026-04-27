@@ -71,7 +71,7 @@ async function main() {
         { division: 'Social Media Division', groups: ['Members'] },
         { division: 'Blockchain Team', groups: ['Members'] },
     ];
-
+kn
     const groupsByDivision = {};
     for (const g of groupsData) {
         const divObj = divisions[g.division];

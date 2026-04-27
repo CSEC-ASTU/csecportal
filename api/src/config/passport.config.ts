@@ -10,10 +10,12 @@ passport.use(
       passwordField: "password",
     },
     async (email, password, done) => {
+      // Normalize email for consistent lookups
+      const emailNormalized = String(email).toLowerCase();
       try {
         // Find user by email
         const user = await prisma.user.findUnique({
-          where: { email },
+          where: { email: emailNormalized },
           select: {
             id: true,
             email: true,
@@ -28,14 +30,14 @@ passport.use(
 
         // Dev debug: log lookup result (avoid logging sensitive fields in production)
         if (process.env.NODE_ENV !== "production") {
-          console.log(`passport: user lookup result for email=${email} ->`, user);
+          console.log(`passport: user lookup result for email=${emailNormalized} ->`, user);
         }
 
         // If user not found
         if (!user) {
           if (process.env.NODE_ENV !== "production") {
             console.log(
-              `passport: authentication failed - user not found for email=${email}`,
+              `passport: authentication failed - user not found for email=${emailNormalized}`,
             );
           }
           return done(null, false, { message: "Invalid email or password" });
@@ -63,7 +65,7 @@ passport.use(
         const isValidPassword = await bcrypt.compare(password, user.password);
         if (!isValidPassword) {
           if (process.env.NODE_ENV !== "production") {
-            console.log(`passport: password mismatch for email=${email}`);
+            console.log(`passport: password mismatch for email=${emailNormalized}`);
           }
           return done(null, false, { message: "Invalid email or password" });
         }

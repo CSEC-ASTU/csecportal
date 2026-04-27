@@ -62,10 +62,11 @@ router.post(
   "/update-profile-picture/:memberId",
   authenticateToken,
   uploadProfilePic.single("profilepic"),
-  async (req: RequestWithUser, res) => {
+  async (req: any, res) => {
     try {
+      const reqUser = req as RequestWithUser;
       const { memberId } = req.params;
-      const userId = req.user?.id;
+      const userId = reqUser.user?.id;
 
       // Validate memberId
       if (!memberId) {
@@ -73,7 +74,7 @@ router.post(
       }
 
       // Check authorization
-      if (userId !== memberId && !req.user?.roles?.includes("PRESIDENT" as any)) {
+      if (userId !== memberId && !reqUser.user?.roles?.includes("PRESIDENT" as any)) {
         return res.status(403).json(errorResponse("Unauthorized"));
       }
 
